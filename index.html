@@ -617,7 +617,22 @@ $("#survey").addEventListener("submit", async e => {
   const data = clean();
   $("#submit").disabled = true; setStatus("Saving…");
   try {
-    await myRef.set({ ...data, submittedAt: new Date().toISOString() });
+    await fetch(
+  "https://default75f9e0a5065d44108c0e8eebe5f5f4.2d.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/05/workflows/782765fd9a4b4e86bddd73244bb50484/triggers/manual/paths/invoke?api-version=1",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      timestamp: new Date().toISOString(),
+      studentName: data.name || "",
+      roll: data.roll || "",
+      level: data.level || "",
+      surveyData: JSON.stringify(data)
+    })
+  }
+);
     try { localStorage.removeItem("srs-draft"); } catch {}
     const n = data.requests.length;
     $("#thanksLine").textContent = n ? `Your ${n === 1 ? "book request goes" : n + " book requests go"} straight into the list we use to choose new books.` : "Your answers help us choose which books to buy next.";
