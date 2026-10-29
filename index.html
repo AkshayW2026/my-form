@@ -594,20 +594,16 @@ let db = null, myRef = null, all = [];
 renderRequests(); refresh(); show();
 $("#next").disabled = false; $("#submit").disabled = true;
 
-(async () => {
-  const user = await claude.use("user");
-  db = await claude.use("db");
+(() => {
   const draft = loadDraft();
-  if (!db || !user) { if (draft) load(draft); ready = true; setStatus("Sign in to claude.ai to submit. You can still fill the form.", "err"); return; }
-  const me = await user.id();
-  myRef = me ? db.collection("responses").doc(me) : null;
-  let prior = null;
-  try { if (myRef) { const snap = await myRef.get(); if (snap.exists) prior = snap.data(); } } catch {}
-  if (prior) load(prior); else if (draft) load(draft);
+
+  if (draft) load(draft);
+
   ready = true;
+
   $("#submit").disabled = false;
-  setStatus(prior ? "You've answered before. Change anything and submit again." : `Step ${step+1} of ${STEPS.length}`);
-  if (await user.canEdit()) startDash();
+
+  setStatus(`Step ${step + 1} of ${STEPS.length}`);
 })();
 
 $("#survey").addEventListener("submit", async e => {
