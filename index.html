@@ -605,14 +605,14 @@ $("#next").disabled = false; $("#submit").disabled = true;
   try { if (myRef) { const snap = await myRef.get(); if (snap.exists) prior = snap.data(); } } catch {}
   if (prior) load(prior); else if (draft) load(draft);
   ready = true;
-  $("#submit").disabled = !myRef;
+  $("#submit").disabled = false;
   setStatus(prior ? "You've answered before. Change anything and submit again." : `Step ${step+1} of ${STEPS.length}`);
   if (await user.canEdit()) startDash();
 })();
 
 $("#survey").addEventListener("submit", async e => {
   e.preventDefault();
-  if (!myRef) { setStatus("Sign in to claude.ai to submit.", "err"); return; }
+ 
   if (!S.level || !(S.name||"").trim() || !(S.roll||"").trim()) { go(1); return; }
   const data = clean();
   $("#submit").disabled = true; setStatus("Saving…");
