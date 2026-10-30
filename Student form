@@ -1,1 +1,767 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Student Reading Form</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a five-step wizard on one sheet, progress rail on top; owner gets a Collection tab with wishlist tally and interest bars */
+:root{
+  --bg:#f1f2f6; --paper:#ffffff; --ink:#221d33; --muted:#625c74; --line:#dcd9e5; --soft:#f6f4fa;
+  --accent:#6a3fb5; --accent-ink:#ffffff; --hi:#ffe066; --ok:#2b7a50; --err:#b4342c; --maybe:#b9a6dd;
+  --display:"Bricolage Grotesque","Avenir Next","Segoe UI",sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#131119; --paper:#1c1925; --ink:#ece8f6; --muted:#a29bb6; --line:#332e42; --soft:#24202f;
+  --accent:#b293f0; --accent-ink:#171320; --hi:#e8c64a; --ok:#6fcb98; --err:#f08b82; --maybe:#5a4a7d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#131119; --paper:#1c1925; --ink:#ece8f6; --muted:#a29bb6; --line:#332e42; --soft:#24202f;
+  --accent:#b293f0; --accent-ink:#171320; --hi:#e8c64a; --ok:#6fcb98; --err:#f08b82; --maybe:#5a4a7d; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;padding-inline:16px;padding-block:28px 64px}
+.wrap{max-width:760px;margin:0 auto;display:grid;gap:20px}
+.wide{max-width:1040px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(22px,4.2vw,30px);line-height:1.05;margin:0;letter-spacing:-.02em;text-wrap:balance}
+h1 mark{background:var(--hi);color:#221d33;padding:0 .12em;border-radius:3px}
+.school{font-family:var(--display);font-weight:700;font-size:clamp(34px,7.5vw,56px);line-height:1.05;letter-spacing:-.02em;text-wrap:balance;color:var(--accent);padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.lede{color:var(--muted);margin:0;max-width:62ch}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.tabs button{font:700 14px var(--body);background:none;border:0;color:var(--muted);padding:10px 14px;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer}
+.tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--accent)}
+.sheet{background:var(--paper);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.rail{display:grid;grid-template-columns:repeat(6,1fr);border-bottom:1px solid var(--line)}
+.rail button{all:unset;cursor:pointer;padding:12px 10px 10px;display:grid;gap:6px;font-size:13px;color:var(--muted);min-width:0}
+.rail button span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rail button::before{content:"";height:4px;border-radius:2px;background:var(--line)}
+.rail button.done::before{background:var(--maybe)}
+.rail button.now{color:var(--ink);font-weight:700}
+.rail button.now::before{background:var(--accent)}
+.rail button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+@media (max-width:560px){.rail button span{display:none}.rail button.now span{display:block}.rail{grid-template-columns:repeat(6,auto);justify-content:stretch}.rail button{flex:1}}
+.step{padding:24px 22px;display:grid;gap:22px}
+.step h2{font-family:var(--display);font-weight:700;font-size:26px;margin:0;letter-spacing:-.01em}
+.step > p{margin:-14px 0 0;color:var(--muted)}
+.q{display:grid;gap:8px;min-width:0}
+.ql{font-weight:700;font-size:15px}
+.hint{font-weight:400;color:var(--muted);font-size:13px}
+.req{color:var(--accent)}
+.branch{border-left:3px solid var(--maybe);padding-left:14px;display:grid;gap:18px}
+input[type=text],input[type=number],textarea,select{width:100%;font:inherit;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:10px 12px;min-width:0}
+textarea{min-height:72px;resize:vertical}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:560px){.row2{grid-template-columns:1fr}}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative;display:inline-flex}
+.chip input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer;width:100%;height:100%}
+.chip span{display:inline-block;padding:7px 13px;border:1px solid var(--line);border-radius:999px;background:var(--soft);font-size:14px;cursor:pointer}
+.chip input:checked + span{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chip input:focus-visible + span{outline:2px solid var(--accent);outline-offset:2px}
+.rate{display:grid;gap:2px}
+.rate-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line)}
+.rate-row:last-child{border-bottom:0}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.seg label{position:relative}
+.seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer;width:100%;height:100%}
+.seg span{display:block;padding:5px 11px;font-size:13px;cursor:pointer;background:var(--soft);border-left:1px solid var(--line)}
+.seg label:first-child span{border-left:0}
+.seg input:checked + span{background:var(--accent);color:var(--accent-ink)}
+.seg input[value="1"]:checked + span{background:var(--maybe);color:var(--ink)}
+.seg input:focus-visible + span{outline:2px solid var(--accent);outline-offset:-2px}
+@media (max-width:440px){.rate-row{grid-template-columns:1fr}}
+.req-list{display:grid;gap:10px}
+.req-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1.4fr) minmax(0,1fr) auto;gap:8px;align-items:center}
+.req-row .x{background:none;border:1px solid var(--line);color:var(--muted);border-radius:6px;width:38px;height:42px;cursor:pointer;font-size:18px}
+@media (max-width:620px){.req-row{grid-template-columns:1fr 1fr;padding-bottom:10px;border-bottom:1px dashed var(--line)}.req-row .t{grid-column:1/-1}.req-row .x{justify-self:end}}
+.nav{display:flex;align-items:center;gap:12px;padding:16px 22px;background:var(--soft);border-top:1px solid var(--line);flex-wrap:wrap}
+.nav .sp{flex:1}
+.btn{font:700 15px var(--body);background:var(--accent);color:var(--accent-ink);border:1px solid var(--accent);border-radius:6px;padding:10px 20px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.status{font-size:14px;color:var(--muted)}
+.status.err{color:var(--err)} .status.ok{color:var(--ok)}
+.thanks{padding:40px 22px;display:grid;gap:12px}
+.thanks h2{font-family:var(--display);font-size:30px;margin:0}
+.badge{justify-self:start;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;background:var(--hi);color:#221d33;padding:4px 9px;border-radius:4px}
+/* dashboard */
+.dash-top{display:flex;gap:16px;flex-wrap:wrap;align-items:end;justify-content:space-between}
+.kpis{display:flex;gap:28px;flex-wrap:wrap}
+.kpi .n{font-family:var(--display);font-weight:700;font-size:38px;line-height:1;font-variant-numeric:tabular-nums}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tools select{width:auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:grid;gap:10px;align-content:start;min-width:0}
+.panel h3{margin:0;font-family:var(--display);font-size:19px}
+.panel.span{grid-column:1/-1}
+.bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;font-size:14px}
+.bar .track{grid-column:1/-1;height:8px;background:var(--soft);border-radius:2px;overflow:hidden;display:flex}
+.bar .fill{height:100%;background:var(--accent)}
+.bar .fill.m{background:var(--maybe)}
+.v{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px;white-space:nowrap}
+.legend{display:flex;gap:14px;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.pill{display:inline-block;font-size:12px;padding:1px 8px;border-radius:999px;background:var(--hi);color:#221d33;font-weight:700}
+.empty{color:var(--muted);padding:12px 0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
 
+<div class="wrap" id="app">
+  <header style="display:grid;gap:10px">
+    <div class="school">The Shri Ram Academy, Hyderabad</div>
+    <div class="eyebrow">Student reading form · 6 short steps</div>
+    <h1>Help us build a library you'll <mark>actually</mark> want to read.</h1>
+    <p class="lede">Tell us what you read, what you'd love to read, and when and where you read. Every answer helps decide which books we buy next. Questions change based on your answers, so you only see what's relevant to you.</p>
+  </header>
+
+  <nav class="tabs" id="tabs" hidden role="tablist">
+    <button type="button" role="tab" id="tab-form" aria-selected="true">Form</button>
+    <button type="button" role="tab" id="tab-dash" aria-selected="false">Collection planner <span id="tabCount"></span></button>
+  </nav>
+
+  <section id="formView">
+    <form class="sheet" id="survey" novalidate>
+      <div class="rail" id="rail"></div>
+
+      <!-- STEP 1 -->
+      <div class="step" data-step="0">
+        <h2>About you</h2>
+        <p>Questions marked <span class="req">*</span> are required.</p>
+        <div class="row2">
+          <div class="q"><label class="ql" for="name">Your name <span class="req">*</span></label><input type="text" id="name" data-k="name" autocomplete="name" required></div>
+          <div class="q"><label class="ql" for="roll">Roll number, student ID or staff ID <span class="req">*</span></label><input type="text" id="roll" data-k="roll" required></div>
+        </div>
+        <div class="q"><label class="ql" for="level">What programme are you enrolled in? <span class="req">*</span></label>
+          <select id="level" data-k="level" required>
+            <option value="">Choose…</option>
+            <option value="pyp">IB Primary Years Programme (PYP)</option>
+            <option value="myp">IB Middle Years Programme (MYP)</option>
+            <option value="dp">IB Diploma Programme (DP)</option>
+            <option value="cp">IB Career-related Programme (CP)</option>
+            <option value="edu">Educator (teacher, librarian or school staff)</option>
+          </select>
+        </div>
+        <div class="branch" data-if="isSchool">
+          <div class="row2">
+            <div class="q"><label class="ql" for="grade">Grade</label><select id="grade" data-k="grade"></select></div>
+            <div class="q"><label class="ql" for="section">Section <span class="hint">(optional)</span></label><input type="text" id="section" data-k="section"></div>
+          </div>
+        </div>
+        <div class="branch" data-if="isIBDP">
+          <div class="q"><span class="ql">Subject groups you're taking</span><div class="chips" data-multi="ibGroups"></div></div>
+          <div class="q"><label class="ql" for="eeTopic">Extended Essay or Reflective Project topic <span class="hint">(optional)</span></label><input type="text" id="eeTopic" data-k="eeTopic"></div>
+          <div class="q"><label class="ql" for="eeBooks">Books that would help with your EE, Reflective Project or TOK</label><textarea id="eeBooks" data-k="eeBooks" placeholder="Titles, authors or topics"></textarea></div>
+        </div>
+        <div class="branch" data-if="isEdu">
+          <div class="q"><label class="ql" for="eduRole">Your role</label>
+            <select id="eduRole" data-k="eduRole"><option value="">Choose…</option><option>Class or homeroom teacher</option><option>Subject teacher</option><option>Librarian</option><option>Programme coordinator</option><option>School leadership</option><option>Learning support</option><option>Other staff</option></select></div>
+          <div class="q"><span class="ql">Programmes or levels you work with</span><div class="chips" data-multi="eduProgs"></div></div>
+          <div class="q"><label class="ql" for="eduSubjects">Subjects you teach</label><input type="text" id="eduSubjects" data-k="eduSubjects"></div>
+          <div class="q"><label class="ql" for="eduBooks">Books you'd like stocked for your students</label><textarea id="eduBooks" data-k="eduBooks" placeholder="Titles and authors"></textarea></div>
+          <div class="q"><label class="ql" for="eduSets">Class sets you would use <span class="hint">(title and number of copies)</span></label><textarea id="eduSets" data-k="eduSets"></textarea></div>
+          <div class="q"><span class="ql">Professional reading that would help you</span><div class="chips" data-multi="eduPro"></div></div>
+        </div>
+        <div class="q"><span class="ql">Languages you can read in</span><div class="chips" data-multi="languages"></div></div>
+        <div class="q" data-if="langOther"><label class="ql" for="langOther">Which other languages?</label><input type="text" id="langOther" data-k="langOther"></div>
+        <div class="q" data-if="multiLang"><label class="ql" for="prefLang">Which language do you most enjoy reading in?</label><select id="prefLang" data-k="prefLang"></select></div>
+        <div class="q"><span class="ql">Choose your sections <span class="hint">(pick any that interest you; each one adds a few questions in step 3)</span></span><div class="chips" data-multi="sections"></div></div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step" data-step="1" hidden>
+        <h2>Your reading life</h2>
+        <p>Reading for fun, not textbooks.</p>
+        <div class="q"><label class="ql" for="readerType">Which sounds most like you?</label>
+          <select id="readerType" data-k="readerType"><option value="">Choose…</option><option value="avid">I read all the time</option><option value="regular">I read regularly</option><option value="sometimes">I read now and then</option><option value="rarely">I rarely read for fun</option><option value="never">I don't read for fun right now</option></select></div>
+
+        <div class="branch" data-if="lowReader">
+          <div class="q"><span class="ql">What gets in the way?</span><div class="chips" data-multi="barriers"></div></div>
+          <div class="q"><label class="ql" for="motivate">What would make you want to pick up a book?</label><textarea id="motivate" data-k="motivate" placeholder="Shorter books, books about my hobbies, comics, reading with friends…"></textarea></div>
+        </div>
+
+        <div class="branch" data-if="reads">
+          <div class="row2">
+            <div class="q"><label class="ql" for="recentCount">Books finished in the last 3 months</label>
+              <select id="recentCount" data-k="recentCount"><option value="">Choose…</option><option>0</option><option>1</option><option>2–3</option><option>4–6</option><option>7–10</option><option>More than 10</option></select></div>
+            <div class="q"><label class="ql" for="favAuthor">Favourite author</label><input type="text" id="favAuthor" data-k="favAuthor"></div>
+          </div>
+          <div class="row2">
+            <div class="q"><label class="ql" for="current">Book you're reading now</label><input type="text" id="current" data-k="current" placeholder="Title and author"></div>
+            <div class="q"><label class="ql" for="favourite">Best book you've ever read</label><input type="text" id="favourite" data-k="favourite" placeholder="Title and author"></div>
+          </div>
+          <div class="q"><label class="ql" for="whyLove">What made that book so good?</label><input type="text" id="whyLove" data-k="whyLove" placeholder="The characters, the twist, it felt real…"></div>
+        </div>
+
+        <div class="q"><span class="ql">How do you like to read?</span><div class="chips" data-multi="formats"></div></div>
+        <div class="branch" data-if="digital">
+          <div class="q"><span class="ql">Which devices do you read on?</span><div class="chips" data-multi="devices"></div></div>
+        </div>
+        <div class="q"><label class="ql" for="ownBooks">Where do your books usually come from?</label>
+          <select id="ownBooks" data-k="ownBooks"><option value="">Choose…</option><option>I buy them</option><option>School library</option><option>Public library</option><option>Borrow from friends or family</option><option>Free online</option><option>I don't usually have books to read</option></select></div>
+      </div>
+
+      <!-- STEP 3: chosen sections -->
+      <div class="step" data-step="2" hidden>
+        <h2>Your sections</h2>
+        <p>Questions for the sections you picked in step 1.</p>
+        <div class="q" data-if="noSections"><span class="status">You haven't picked any sections. Go back to step 1 to choose some, or select Next to continue.</span></div>
+
+        <div class="branch" data-if="secPleasure">
+          <div class="ql" style="font-size:18px">Reading for pleasure</div>
+          <div class="q"><span class="ql">What mood do you like a book to have?</span><div class="chips" data-multi="pMoods"></div></div>
+          <div class="row2">
+            <div class="q"><label class="ql" for="pSeries">Series or standalone books?</label>
+              <select id="pSeries" data-k="pSeries"><option value="">Choose…</option><option>Series</option><option>Standalone books</option><option>Both</option></select></div>
+            <div class="q"><label class="ql" for="pLength">Favourite book length</label>
+              <select id="pLength" data-k="pLength"><option value="">Choose…</option><option>Short (under 150 pages)</option><option>Medium (150–350 pages)</option><option>Long (350+ pages)</option><option>Any length</option></select></div>
+          </div>
+          <div class="q"><span class="ql">How do you choose a book to read?</span><div class="chips" data-multi="pChoose"></div></div>
+          <div class="q"><label class="ql" for="pSeriesFav">Favourite series or characters</label><input type="text" id="pSeriesFav" data-k="pSeriesFav"></div>
+          <div class="q"><label class="ql" for="pReread">A book you've read more than once</label><input type="text" id="pReread" data-k="pReread"></div>
+          <div class="q"><label class="ql" for="pDream">Describe a book you wish existed in the library</label><textarea id="pDream" data-k="pDream" placeholder="A mystery set in my city, a funny story about cricket…"></textarea></div>
+        </div>
+
+        <div class="branch" data-if="secAcademic">
+          <div class="ql" style="font-size:18px">Academic and research reading</div>
+          <div class="q"><span class="ql">What are you researching for?</span><div class="chips" data-multi="aFor"></div></div>
+          <div class="q"><span class="ql">Sources you use or would like access to</span><div class="chips" data-multi="aSources"></div></div>
+          <div class="q"><span class="ql">Research skills you'd like help with</span><div class="chips" data-multi="aSkills"></div></div>
+          <div class="q"><label class="ql" for="aTopics">Topics you need books or sources on</label><textarea id="aTopics" data-k="aTopics"></textarea></div>
+        </div>
+
+        <div class="branch" data-if="secLang">
+          <div class="ql" style="font-size:18px">Reading in other languages</div>
+          <div class="row2">
+            <div class="q"><label class="ql" for="lLang">Language you're learning</label><input type="text" id="lLang" data-k="lLang" placeholder="Spanish, French, Hindi…"></div>
+            <div class="q"><label class="ql" for="lLevel">Your level</label>
+              <select id="lLevel" data-k="lLevel"><option value="">Choose…</option><option>Beginner</option><option>Intermediate</option><option>Advanced</option><option>Fluent / first language</option></select></div>
+          </div>
+          <div class="q"><span class="ql">What would you read in that language?</span><div class="chips" data-multi="lTypes"></div></div>
+          <div class="q"><label class="ql" for="lTitles">Titles or authors you'd like</label><input type="text" id="lTitles" data-k="lTitles"></div>
+        </div>
+
+        <div class="branch" data-if="secComics">
+          <div class="ql" style="font-size:18px">Comics, manga and graphic novels</div>
+          <div class="q"><span class="ql">Styles you enjoy</span><div class="chips" data-multi="cStyles"></div></div>
+          <div class="q"><label class="ql" for="cTitles">Series or titles you'd want in the library</label><textarea id="cTitles" data-k="cTitles"></textarea></div>
+        </div>
+
+        <div class="branch" data-if="secNonfic">
+          <div class="ql" style="font-size:18px">Non-fiction and the real world</div>
+          <div class="q"><span class="ql">Topics you'd read about</span><div class="chips" data-multi="nTopics"></div></div>
+          <div class="q"><span class="ql">Magazines or newspapers you'd read in the library</span><div class="chips" data-multi="nMags"></div></div>
+          <div class="q"><label class="ql" for="nTitles">Non-fiction books you'd want</label><input type="text" id="nTitles" data-k="nTitles"></div>
+        </div>
+
+        <div class="branch" data-if="secWriting">
+          <div class="ql" style="font-size:18px">Writing and creative work</div>
+          <div class="q"><span class="ql">What do you write?</span><div class="chips" data-multi="wTypes"></div></div>
+          <div class="q"><span class="ql">What would help you write more?</span><div class="chips" data-multi="wHelp"></div></div>
+        </div>
+
+        <div class="branch" data-if="secDigital">
+          <div class="ql" style="font-size:18px">Digital and audio reading</div>
+          <div class="q"><span class="ql">Apps or platforms you use</span><div class="chips" data-multi="dApps"></div></div>
+          <div class="q"><label class="ql" for="dElib">Would you use a school e-library?</label>
+            <select id="dElib" data-k="dElib"><option value="">Choose…</option><option>Yes</option><option>Maybe</option><option>No</option></select></div>
+          <div class="q"><label class="ql" for="dWant">E-books or audiobooks you'd want</label><input type="text" id="dWant" data-k="dWant"></div>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step" data-step="3" hidden>
+        <h2>What interests you</h2>
+        <p>Rate each kind of book. This is the most useful part for building the collection.</p>
+        <div class="q"><span class="ql">Kinds of books</span><div class="rate" id="rate"></div></div>
+        <div class="branch" id="lovedBox" hidden>
+          <div class="ql">You loved these. Any titles or authors you'd want in the library?</div>
+          <div id="lovedFavs" style="display:grid;gap:12px"></div>
+        </div>
+        <div class="q"><span class="ql">Subjects you'd like to read more about</span><div class="chips" data-multi="subjects"></div></div>
+        <div class="q" data-if="subjOther"><label class="ql" for="subjectOther">Which other subjects?</label><input type="text" id="subjectOther" data-k="subjectOther"></div>
+        <div class="branch" data-if="examAge">
+          <div class="q"><span class="ql">Are you preparing for any exams?</span><div class="chips" data-multi="exams"></div></div>
+          <div class="q" data-if="hasExam"><label class="ql" for="examBooks">Books or guides you need for exam prep</label><textarea id="examBooks" data-k="examBooks" placeholder="e.g. HC Verma Concepts of Physics, Laxmikanth Indian Polity"></textarea></div>
+        </div>
+        <div class="q"><span class="ql">Which reading level feels right for fun reading?</span>
+          <select id="difficulty" data-k="difficulty"><option value="">Choose…</option><option>Easy, quick reads</option><option>Right at my level</option><option>A bit challenging</option><option>Very challenging</option></select></div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="step" data-step="4" hidden>
+        <h2>When and where you read</h2>
+        <div class="row2">
+          <div class="q"><label class="ql" for="frequency">How often do you read for fun?</label>
+            <select id="frequency" data-k="frequency"><option value="">Choose…</option><option>Every day</option><option>A few times a week</option><option>Once a week</option><option>A few times a month</option><option>Rarely</option></select></div>
+          <div class="q"><label class="ql" for="session">How long do you usually read at a time?</label>
+            <select id="session" data-k="session"><option value="">Choose…</option><option>Under 15 min</option><option>15–30 min</option><option>30–60 min</option><option>1–2 hours</option><option>More than 2 hours</option></select></div>
+        </div>
+        <div class="q"><span class="ql">When do you usually read?</span><div class="chips" data-multi="times"></div></div>
+        <div class="q"><span class="ql">Where do you usually read?</span><div class="chips" data-multi="places"></div></div>
+        <div class="q"><label class="ql" for="holidays">Do you read more during holidays?</label>
+          <select id="holidays" data-k="holidays"><option value="">Choose…</option><option>Much more</option><option>A little more</option><option>About the same</option><option>Less</option></select></div>
+        <div class="q"><label class="ql" for="libVisits">How often do you visit the library?</label>
+          <select id="libVisits" data-k="libVisits"><option value="">Choose…</option><option value="weekly">Every week</option><option value="monthly">A few times a month</option><option value="rarely">Rarely</option><option value="never">Never</option></select></div>
+        <div class="branch" data-if="libUser">
+          <div class="q"><span class="ql">What would make the library better for you?</span><div class="chips" data-multi="libIssues"></div></div>
+        </div>
+        <div class="branch" data-if="libNon">
+          <div class="q"><span class="ql">Why don't you visit?</span><div class="chips" data-multi="libWhyNot"></div></div>
+        </div>
+      </div>
+
+      <!-- STEP 5 -->
+      <div class="step" data-step="5" hidden>
+        <h2>Your wishlist</h2>
+        <p>Name the books you'd want to find on our shelves. Add as many as you like.</p>
+        <div class="req-list" id="reqList"></div>
+        <div><button type="button" class="btn ghost" id="addReq">Add another book</button></div>
+
+        <div class="q"><label class="ql" for="club">Would you join a student book club?</label>
+          <select id="club" data-k="club"><option value="">Choose…</option><option value="yes">Yes</option><option value="maybe">Maybe</option><option value="no">No</option></select></div>
+        <div class="branch" data-if="clubKeen">
+          <div class="row2">
+            <div class="q"><label class="ql" for="clubMode">How would you meet?</label>
+              <select id="clubMode" data-k="clubMode"><option value="">Choose…</option><option>In person</option><option>Online</option><option>Either</option></select></div>
+            <div class="q"><label class="ql" for="clubFreq">How often?</label>
+              <select id="clubFreq" data-k="clubFreq"><option value="">Choose…</option><option>Weekly</option><option>Every two weeks</option><option>Monthly</option></select></div>
+          </div>
+          <div class="q"><span class="ql">Best days</span><div class="chips" data-multi="clubDays"></div></div>
+        </div>
+        <div class="q"><span class="ql">Which of these would you take part in?</span><div class="chips" data-multi="wants"></div></div>
+        <div class="row2">
+          <div class="q"><label class="ql" for="donate">Could you donate books you've finished?</label>
+            <select id="donate" data-k="donate"><option value="">Choose…</option><option value="yes">Yes</option><option value="maybe">Maybe</option><option value="no">No</option></select></div>
+          <div class="q" data-if="donor"><label class="ql" for="donateCount">About how many?</label>
+            <select id="donateCount" data-k="donateCount"><option value="">Choose…</option><option>1–2</option><option>3–5</option><option>6–10</option><option>More than 10</option></select></div>
+        </div>
+        <div class="q"><label class="ql" for="volunteer">Would you help run the library or reading events?</label>
+          <select id="volunteer" data-k="volunteer"><option value="">Choose…</option><option value="yes">Yes</option><option value="maybe">Maybe</option><option value="no">No</option></select></div>
+        <div class="q"><label class="ql" for="comments">Anything else we should know?</label><textarea id="comments" data-k="comments"></textarea></div>
+      </div>
+
+      <div class="nav">
+        <button type="button" class="btn ghost" id="back">Back</button>
+        <span class="status" id="status" role="status">Connecting…</span>
+        <span class="sp"></span>
+        <button type="button" class="btn" id="next">Next</button>
+        <button type="submit" class="btn" id="submit" hidden>Submit</button>
+      </div>
+    </form>
+
+    <div class="sheet" id="thanks" hidden>
+      <div class="thanks">
+        <span class="badge">Saved</span>
+        <h2>Thank you! Your answers are in.</h2>
+        <p class="lede">The library team at The Shri Ram Academy, Hyderabad will use them to choose new books.</p>
+        <p class="lede" id="thanksLine">Your wishlist goes straight into the list we use to choose new books.</p>
+        <div><button type="button" class="btn ghost" id="editAgain">Change my answers</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="dashView" hidden style="display:grid;gap:18px">
+    <div class="dash-top">
+      <div class="kpis">
+        <div class="kpi"><div class="n" id="kTotal">0</div><div class="eyebrow">responses</div></div>
+        <div class="kpi"><div class="n" id="kTitles">0</div><div class="eyebrow">books requested</div></div>
+        <div class="kpi"><div class="n" id="kClub">0</div><div class="eyebrow">want a book club</div></div>
+        <div class="kpi"><div class="n" id="kDonors">0</div><div class="eyebrow">can donate</div></div>
+      </div>
+      <div class="tools">
+        <label class="hint" for="filterLevel">Show</label>
+        <select id="filterLevel"><option value="">All students</option></select>
+        <button type="button" class="btn ghost" id="csvReq" hidden>Wishlist CSV</button>
+        <button type="button" class="btn ghost" id="csvAll" hidden>All answers CSV</button>
+      </div>
+    </div>
+    <div class="grid" id="dash"></div>
+  </section>
+</div>
+
+<script>
+const LEVELS = {pyp:"IB PYP",myp:"IB MYP",dp:"IB DP",cp:"IB CP",edu:"Educators"};
+const GRADES = {primary:["Class 1","Class 2","Class 3","Class 4","Class 5"],middle:["Class 6","Class 7","Class 8"],high:["Class 9","Class 10"],hs:["Class 11 / 1st year Inter","Class 12 / 2nd year Inter"],pyp:["5","6","7","8","9","10","11","12"],myp:["5","6","7","8","9","10","11","12"],dp:["5","6","7","8","9","10","11","12"],cp:["5","6","7","8","9","10","11","12"]};
+const STATIC = {
+  languages:["English","Hindi","Telugu","Tamil","Kannada","Spanish","French","Other"],
+  barriers:["No time","Too much homework or study","Can't find books I like","Books cost too much","No library nearby","I prefer videos or games","Hard to concentrate","Books feel too difficult","Reading feels boring"],
+  formats:["Printed books","E-books","Audiobooks","Comics & graphic novels","Magazines","Web novels & online stories"],
+  devices:["Phone","Tablet","Kindle / e-reader","Laptop or computer"],
+  times:["Before school","During free periods","On the bus or commute","After school","Evening","Before bed","Weekends","Holidays"],
+  places:["Home, in my room","Home, living area","Classroom","School library","Public library","School bus","Park or outdoors","Boarding house"],
+  libIssues:["More new books","More copies of popular books","Longer opening hours","Easier to find books","Quiet study space","Comfortable reading corner","Allow more books per issue","E-book lending","More books in my language"],
+  libWhyNot:["Don't know what's there","Timings don't suit me","Books are old","Nothing I'm interested in","Too far","Not enough seats","Didn't know I could borrow"],
+  clubDays:["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+  ibGroups:["Studies in language and literature","Language acquisition","Individuals and societies","Sciences","Mathematics","The arts","Career-related study (CP)"],
+  eduProgs:["PYP","MYP","DP","CP"],
+  eduPro:["Teaching and learning strategies","IB philosophy and approaches to learning","Assessment","Inquiry-based learning","Student wellbeing","Inclusion and learning support","Leadership","Subject knowledge","Educational technology and AI"],
+  sections:["Reading for pleasure","Academic and research reading","Reading in other languages","Comics, manga and graphic novels","Non-fiction and the real world","Writing and creative work","Digital and audio reading"],
+  pMoods:["Funny","Cosy and comforting","Thrilling","Scary","Emotional","Romantic","Thought-provoking","Inspiring","Mysterious","Adventurous"],
+  pChoose:["The cover","The blurb on the back","Friends recommend it","Teacher or librarian recommends it","I know the author","It's part of a series","Saw it online","It became a film or show"],
+  aFor:["MYP Personal Project","Extended Essay","Internal Assessments","TOK","CP Reflective Project","Class projects","My own curiosity"],
+  aSources:["Reference books","Academic journals","Online databases (JSTOR, EBSCO)","Newspapers","Magazines","Primary sources","Documentaries","Encyclopaedias"],
+  aSkills:["Finding good sources","Judging if a source is reliable","Note-taking","Citing and referencing","Avoiding plagiarism","Reading academic texts"],
+  lTypes:["Graded readers","Picture books","Bilingual books","Comics","Short stories","Novels","Poetry","News and magazines"],
+  cStyles:["Superhero","Manga (action / shōnen)","Manga (drama / shōjo)","Indian comics (Amar Chitra Katha, Tinkle)","Graphic novel adaptations of classics","Non-fiction graphic novels","Funny comic strips","Webcomics"],
+  nTopics:["True stories","Sport","Careers","Current affairs","Travel","Food and cooking","Climate and nature","Technology and gaming","Money","Health and wellbeing","Famous people"],
+  nMags:["National Geographic","The Week Junior","Time","The Economist","Reader's Digest","Science magazines","Sports magazines","Daily newspapers"],
+  wTypes:["Stories","Poetry","Blogs","News and journalism","Scripts","Fan fiction","Diary or journal","I don't write yet"],
+  wHelp:["Writing workshops","A school magazine","Writing competitions","Books on how to write","Meeting authors","A writers' club"],
+  dApps:["Kindle","Sora / Libby","Audible","Storytel","Wattpad","Epic","Google Play Books","Apple Books","Pocket FM","None"],
+  wants:["Reading challenges with rewards","Author talks","Book swaps","Book reviews on a notice board","Storytelling sessions","Creative writing workshops","Debate on books","Silent reading hour","Book fair"]
+};
+const GENRES_KIDS = ["Picture books","Fairy tales & folk tales","Animal stories","Adventure","Funny stories","Mystery for kids","Comics","Science & nature facts","Indian mythology stories","Poems & rhymes","Activity & puzzle books"];
+const GENRES_TEEN = ["Adventure","Mystery & detective","Thriller","Fantasy","Science fiction","Horror","Humour","Historical fiction","Classics","Indian writing","Indian mythology","Comics & graphic novels","Manga","Biography & memoir","History","Science & technology","Sports","Self-help & motivation","Poetry"];
+const GENRES_OLDER_ADD = ["Romance","Literary fiction","Business & finance","Philosophy","Politics & society","Psychology"];
+const SUBJ_KIDS = ["Space","Animals","Dinosaurs","How things work","Our country","Art & craft","Maths puzzles","Stories from history","Other"];
+const SUBJ = ["Maths","Physics","Chemistry","Biology","Computers & coding","AI & robotics","Environment","History","Geography","Civics & politics","Economics","Psychology","Literature","Art & design","Music","Languages","Entrepreneurship","Career guidance","Other"];
+const EXAMS_MYP = ["MYP eAssessment","NTSE","Olympiads","JEE foundation","NEET foundation","None right now"];
+const EXAMS_IB = ["SAT / ACT","IELTS / TOEFL","JEE","NEET","CUET","UCAT / BMAT","None right now"];
+const EXAMS = ["JEE","NEET","TS EAMCET","CUET","CLAT","NDA","CAT","GATE","GRE / GMAT","IELTS / TOEFL","UPSC / State PSC","Banking & SSC","None right now"];
+
+const COND = {
+  isSchool: s => ["primary","middle","high","hs","pyp","myp","dp","cp"].includes(s.level),
+  isIBDP: s => ["dp","cp"].includes(s.level),
+  isEdu: s => s.level === "edu",
+  langOther: s => (s.languages||[]).includes("Other"),
+  multiLang: s => (s.languages||[]).length > 1,
+  lowReader: s => ["rarely","never"].includes(s.readerType),
+  reads: s => ["avid","regular","sometimes"].includes(s.readerType),
+  digital: s => (s.formats||[]).some(f => ["E-books","Audiobooks","Web novels & online stories"].includes(f)),
+  subjOther: s => (s.subjects||[]).includes("Other"),
+  examAge: s => ["high","hs","ug","pg","myp","dp","cp"].includes(s.level),
+  hasExam: s => (s.exams||[]).some(e => e !== "None right now"),
+  libUser: s => ["weekly","monthly","rarely"].includes(s.libVisits),
+  libNon: s => s.libVisits === "never",
+  clubKeen: s => ["yes","maybe"].includes(s.club),
+  donor: s => ["yes","maybe"].includes(s.donate),
+  noSections: s => !(s.sections||[]).length,
+  secPleasure: s => (s.sections||[]).includes("Reading for pleasure"),
+  secAcademic: s => (s.sections||[]).includes("Academic and research reading"),
+  secLang: s => (s.sections||[]).includes("Reading in other languages"),
+  secComics: s => (s.sections||[]).includes("Comics, manga and graphic novels"),
+  secNonfic: s => (s.sections||[]).includes("Non-fiction and the real world"),
+  secWriting: s => (s.sections||[]).includes("Writing and creative work"),
+  secDigital: s => (s.sections||[]).includes("Digital and audio reading")
+};
+const STEPS = ["About you","Reading life","Your sections","Interests","Habits","Wishlist"];
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g,"-");
+
+let S = { ratings:{}, genreFavs:{}, requests:[{},{},{}] };
+let step = 0;
+
+function genresFor(l){ if (l==="primary"||l==="pyp") return GENRES_KIDS; if (l==="middle"||l==="myp") return GENRES_TEEN; return GENRES_TEEN.concat(GENRES_OLDER_ADD); }
+function multiOptions(key){
+  if (STATIC[key]) return STATIC[key];
+  if (key==="subjects") return ["primary","pyp"].includes(S.level) ? SUBJ_KIDS : SUBJ;
+  if (key==="exams") return S.level==="myp" ? EXAMS_MYP : ["dp","cp"].includes(S.level) ? EXAMS_IB : EXAMS;
+  return [];
+}
+
+/* chips */
+function renderChips(box){
+  const key = box.dataset.multi, opts = multiOptions(key), sig = opts.join("|");
+  if (box.dataset.sig === sig) return;
+  box.dataset.sig = sig;
+  S[key] = (S[key]||[]).filter(v => opts.includes(v));
+  box.innerHTML = opts.map((o,i) => `<label class="chip"><input type="checkbox" id="${key}-${i}" value="${esc(o)}" ${S[key].includes(o)?"checked":""}><span>${esc(o)}</span></label>`).join("");
+}
+document.addEventListener("change", e => {
+  const box = e.target.closest("[data-multi]");
+  if (box) { S[box.dataset.multi] = [...box.querySelectorAll("input:checked")].map(i => i.value); refresh(); }
+});
+
+/* plain fields */
+document.querySelectorAll("[data-k]").forEach(el => {
+  el.addEventListener("input", () => { S[el.dataset.k] = el.value; if (el.tagName === "SELECT") refresh(); else saveDraft(); });
+  el.addEventListener("change", () => { S[el.dataset.k] = el.value; refresh(); });
+});
+function writeFields(){ document.querySelectorAll("[data-k]").forEach(el => { if (el.value !== (S[el.dataset.k]||"")) el.value = S[el.dataset.k]||""; }); }
+
+/* genre ratings */
+function renderRatings(){
+  const list = genresFor(S.level), box = $("#rate"), sig = list.join("|");
+  if (box.dataset.sig !== sig) {
+    box.dataset.sig = sig;
+    box.innerHTML = list.map(g => { const k = slug(g), v = S.ratings[g];
+      return `<div class="rate-row"><span>${esc(g)}</span><div class="seg" role="radiogroup" aria-label="${esc(g)}">
+      ${[["0","Not for me"],["1","Maybe"],["2","Love it"]].map(([val,lab]) => `<label><input type="radio" name="r-${k}" id="r-${k}-${val}" value="${val}" data-genre="${esc(g)}" ${String(v)===val?"checked":""}><span>${lab}</span></label>`).join("")}
+      </div></div>`; }).join("");
+  }
+  const loved = list.filter(g => S.ratings[g] === 2);
+  $("#lovedBox").hidden = !loved.length;
+  const fb = $("#lovedFavs"), fsig = loved.join("|");
+  if (fb.dataset.sig !== fsig) {
+    fb.dataset.sig = fsig;
+    fb.innerHTML = loved.map(g => `<div class="q"><label class="ql" for="fav-${slug(g)}">${esc(g)}</label><input type="text" id="fav-${slug(g)}" data-genrefav="${esc(g)}" value="${esc(S.genreFavs[g]||"")}" placeholder="Titles, series or authors"></div>`).join("");
+  }
+}
+$("#rate").addEventListener("change", e => { const g = e.target.dataset.genre; if (!g) return; S.ratings[g] = Number(e.target.value); refresh(); });
+$("#lovedFavs").addEventListener("input", e => { const g = e.target.dataset.genrefav; if (g) { S.genreFavs[g] = e.target.value; saveDraft(); } });
+
+/* wishlist rows */
+function renderRequests(){
+  $("#reqList").innerHTML = S.requests.map((r,i) => `<div class="req-row" data-i="${i}">
+    <input class="t" type="text" id="rq-t-${i}" data-f="title" aria-label="Book ${i+1} title" placeholder="Book title" value="${esc(r.title||"")}">
+    <input type="text" id="rq-a-${i}" data-f="author" aria-label="Book ${i+1} author" placeholder="Author" value="${esc(r.author||"")}">
+    <select id="rq-p-${i}" data-f="priority" aria-label="Book ${i+1} priority"><option value="">How much?</option><option ${r.priority==="Must have"?"selected":""}>Must have</option><option ${r.priority==="Would like"?"selected":""}>Would like</option></select>
+    <button type="button" class="x" aria-label="Remove book ${i+1}">×</button></div>`).join("");
+  $("#addReq").disabled = S.requests.length >= 20;
+}
+$("#reqList").addEventListener("input", e => { const row = e.target.closest(".req-row"); if (!row) return; S.requests[row.dataset.i][e.target.dataset.f] = e.target.value; saveDraft(); });
+$("#reqList").addEventListener("click", e => { if (!e.target.classList.contains("x")) return; const i = +e.target.closest(".req-row").dataset.i; S.requests.splice(i,1); if (!S.requests.length) S.requests.push({}); renderRequests(); saveDraft(); });
+$("#addReq").onclick = () => { S.requests.push({}); renderRequests(); $(`#rq-t-${S.requests.length-1}`).focus(); };
+
+/* dependent selects */
+function fillSelect(el, opts, key){
+  const sig = opts.join("|"); if (el.dataset.sig === sig) return; el.dataset.sig = sig;
+  el.innerHTML = `<option value="">Choose…</option>` + opts.map(o => `<option>${esc(o)}</option>`).join("");
+  if (!opts.includes(S[key])) S[key] = ""; el.value = S[key]||"";
+}
+
+function refresh(){
+  document.querySelectorAll("[data-multi]").forEach(renderChips);
+  fillSelect($("#grade"), GRADES[S.level]||[], "grade");
+  const langs = (S.languages||[]).filter(l => l !== "Other").concat(S.langOther ? S.langOther.split(/,\s*/).filter(Boolean) : []);
+  fillSelect($("#prefLang"), langs, "prefLang");
+  renderRatings();
+  document.querySelectorAll("[data-if]").forEach(el => el.hidden = !COND[el.dataset.if](S));
+  renderRail();
+  saveDraft();
+}
+
+/* wizard */
+function renderRail(){
+  $("#rail").innerHTML = STEPS.map((t,i) => `<button type="button" data-go="${i}" class="${i===step?"now":i<step?"done":""}" aria-current="${i===step?"step":"false"}"><span>${i+1}. ${t}</span></button>`).join("");
+}
+$("#rail").addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) go(+b.dataset.go); });
+function go(n){
+  if (n > 0) {
+    const missing = [["name","your name"],["roll","your roll number or ID"],["level","the programme you're enrolled in"]].find(([k]) => !(S[k]||"").trim());
+    if (missing) { step = 0; show(); setStatus(`Fill in ${missing[1]} to continue.`, "err"); $("#"+missing[0]).focus(); return; }
+  }
+  step = Math.max(0, Math.min(STEPS.length-1, n)); show();
+  $("#survey").scrollIntoView({block:"start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+}
+function show(){
+  document.querySelectorAll(".step").forEach(s => s.hidden = +s.dataset.step !== step);
+  $("#back").disabled = step === 0;
+  $("#next").hidden = step === STEPS.length-1;
+  $("#submit").hidden = step !== STEPS.length-1;
+  renderRail();
+  if (ready) setStatus(`Step ${step+1} of ${STEPS.length}`);
+}
+$("#next").onclick = () => go(step+1);
+$("#back").onclick = () => go(step-1);
+
+function setStatus(t, c=""){ const s = $("#status"); s.textContent = t; s.className = "status " + c; }
+
+/* draft */
+let ready = false;
+function saveDraft(){ if (!ready) return; try { localStorage.setItem("srs-draft", JSON.stringify(S)); } catch {} }
+function loadDraft(){ try { return JSON.parse(localStorage.getItem("srs-draft")||"null"); } catch { return null; } }
+function load(d){
+  S = Object.assign({ ratings:{}, genreFavs:{}, requests:[] }, d);
+  if (!Array.isArray(S.requests) || !S.requests.length) S.requests = [{},{},{}];
+  document.querySelectorAll("[data-multi],#rate,#lovedFavs,#grade,#prefLang").forEach(el => delete el.dataset.sig);
+  writeFields(); refresh(); writeFields(); renderRequests();
+}
+
+function clean(){
+  const out = JSON.parse(JSON.stringify(S));
+  out.requests = (out.requests||[]).map(r => ({title:(r.title||"").trim().slice(0,200), author:(r.author||"").trim().slice(0,120), priority:r.priority||""})).filter(r => r.title);
+  for (const k in out) if (typeof out[k] === "string") out[k] = out[k].trim().slice(0,2000);
+  // drop answers hidden by branching so the data stays consistent
+  const hiddenKeys = [];
+  document.querySelectorAll("[data-if]").forEach(el => { if (el.hidden) el.querySelectorAll("[data-k]").forEach(x => hiddenKeys.push(x.dataset.k)), el.querySelectorAll("[data-multi]").forEach(x => hiddenKeys.push(x.dataset.multi)); if (el.hidden && el.dataset.k) hiddenKeys.push(el.dataset.k); });
+  hiddenKeys.forEach(k => delete out[k]);
+  const genres = genresFor(out.level);
+  out.ratings = Object.fromEntries(Object.entries(out.ratings||{}).filter(([g]) => genres.includes(g)));
+  out.genreFavs = Object.fromEntries(Object.entries(out.genreFavs||{}).filter(([g,v]) => out.ratings[g] === 2 && v && v.trim()).map(([g,v]) => [g, v.trim().slice(0,300)]));
+  delete out.submittedAt;
+  return out;
+}
+
+/* boot */
+let db = null, myRef = null, all = [];
+renderRequests(); refresh(); show();
+$("#next").disabled = false; $("#submit").disabled = true;
+
+(() => {
+  const draft = loadDraft();
+
+  if (draft) load(draft);
+
+  ready = true;
+
+  $("#submit").disabled = false;
+
+  setStatus(`Step ${step + 1} of ${STEPS.length}`);
+})();
+
+$("#survey").addEventListener("submit", async e => {
+  e.preventDefault();
+ 
+  if (!S.level || !(S.name||"").trim() || !(S.roll||"").trim()) { go(1); return; }
+  const data = clean();
+  $("#submit").disabled = true; setStatus("Saving…");
+  try {
+    await fetch(
+  "https://default75f9e0a5065d44108c0e8eebe5f5f4.2d.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/27/workflows/e49a2be0b30241dba68e2f7cc91f6c89/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=lfcHNouL_qAijVJpaLdsL8moiJeNVwvLy46bgA4lQlw",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      timestamp: new Date().toISOString(),
+      studentName: data.name || "",
+      roll: data.roll || "",
+      level: data.level || "",
+      surveyData: JSON.stringify(data)
+    })
+  }
+);
+    try { localStorage.removeItem("srs-draft"); } catch {}
+    const n = data.requests.length;
+    $("#thanksLine").textContent = n ? `Your ${n === 1 ? "book request goes" : n + " book requests go"} straight into the list we use to choose new books.` : "Your answers help us choose which books to buy next.";
+    $("#survey").hidden = true; $("#thanks").hidden = false;
+  } catch (err) {
+    setStatus(["permission_denied","not_granted","forbidden"].includes(err?.code) ? "Your link is view-only. Ask your teacher for a link that lets you respond." : "Couldn't save. Check your connection and try again.", "err");
+  } finally { $("#submit").disabled = false; }
+});
+$("#editAgain").onclick = () => { $("#thanks").hidden = true; $("#survey").hidden = false; go(0); };
+
+/* tabs */
+function tab(w){ $("#tab-form").setAttribute("aria-selected", w==="form"); $("#tab-dash").setAttribute("aria-selected", w==="dash");
+  $("#formView").hidden = w!=="form"; $("#dashView").hidden = w!=="dash"; $("#app").classList.toggle("wide", w==="dash"); }
+$("#tab-form").onclick = () => tab("form");
+$("#tab-dash").onclick = () => tab("dash");
+
+/* dashboard */
+function startDash(){
+  $("#filterLevel").innerHTML = `<option value="">All students</option>` + Object.entries(LEVELS).map(([k,v]) => `<option value="${k}">${v}</option>`).join("");
+  $("#filterLevel").onchange = renderDash;
+  db.collection("responses").onSnapshot(qs => {
+    all = qs.docs.map(d => d.data()||{}).sort((a,b) => (b.submittedAt||"").localeCompare(a.submittedAt||""));
+    $("#tabs").hidden = false; $("#tabCount").textContent = all.length ? `(${all.length})` : "";
+    renderDash();
+  }, () => {});
+  claude.use("downloads").then(dl => {
+    if (!dl) return;
+    $("#csvReq").hidden = false; $("#csvAll").hidden = false;
+    const cell = v => '"' + String(v ?? "").replace(/"/g,'""') + '"';
+    $("#csvReq").onclick = () => {
+      const rows = wishlist(rowsNow()).map(w => [w.title, w.author, w.count, w.must, w.levels.join("; ")]);
+      const csv = [["Title","Author","Requests","Must have","Levels"], ...rows].map(r => r.map(cell).join(",")).join("\n");
+      dl.save({filename:"library-wishlist.csv", data:csv}).catch(()=>{});
+    };
+    $("#csvAll").onclick = () => {
+      const keys = ["submittedAt","name","roll","level","grade","section","ibGroups","eeTopic","eeBooks","eduRole","eduProgs","eduSubjects","eduBooks","eduSets","eduPro","languages","langOther","prefLang","sections","pMoods","pSeries","pLength","pChoose","pSeriesFav","pReread","pDream","aFor","aSources","aSkills","aTopics","lLang","lLevel","lTypes","lTitles","cStyles","cTitles","nTopics","nMags","nTitles","wTypes","wHelp","dApps","dElib","dWant","readerType","barriers","motivate","recentCount","favAuthor","current","favourite","whyLove","formats","devices","ownBooks","subjects","subjectOther","exams","examBooks","difficulty","frequency","session","times","places","holidays","libVisits","libIssues","libWhyNot","club","clubMode","clubFreq","clubDays","wants","donate","donateCount","volunteer","comments"];
+      const genres = [...new Set(GENRES_KIDS.concat(GENRES_TEEN, GENRES_OLDER_ADD))];
+      const lab = ["Not for me","Maybe","Love it"];
+      const head = keys.concat(genres.map(g => "Genre: " + g), ["Genre favourites","Wishlist"]);
+      const body = rowsNow().map(r => keys.map(k => Array.isArray(r[k]) ? r[k].join("; ") : k==="level" ? (LEVELS[r[k]]||r[k]) : r[k])
+        .concat(genres.map(g => r.ratings && g in r.ratings ? lab[r.ratings[g]] : ""),
+          [Object.entries(r.genreFavs||{}).map(([g,v]) => `${g}: ${v}`).join(" | "), (r.requests||[]).map(q => q.title + (q.author?` by ${q.author}`:"") + (q.priority?` (${q.priority})`:"")).join(" | ")]));
+      const csv = [head, ...body].map(r => r.map(cell).join(",")).join("\n");
+      dl.save({filename:"student-reading-form.csv", data:csv}).catch(()=>{});
+    };
+  });
+}
+function rowsNow(){ const f = $("#filterLevel").value; return f ? all.filter(r => r.level === f) : all; }
+function tally(rows, key, map){
+  const m = new Map();
+  rows.forEach(r => { const v = r[key]; (Array.isArray(v) ? v : v ? [v] : []).forEach(x => { const k = map ? (map[x]||x) : x; m.set(k,(m.get(k)||0)+1); }); });
+  return [...m].sort((a,b) => b[1]-a[1]);
+}
+function wishlist(rows){
+  const m = new Map();
+  rows.forEach(r => (r.requests||[]).forEach(q => {
+    const k = (q.title||"").toLowerCase().replace(/[^a-z0-9ऀ-෿]+/g," ").trim(); if (!k) return;
+    const w = m.get(k) || {title:q.title.trim(), author:"", count:0, must:0, levels:new Set()};
+    w.count++; if (q.priority === "Must have") w.must++; if (!w.author && q.author) w.author = q.author.trim(); if (r.level) w.levels.add(LEVELS[r.level]||r.level);
+    m.set(k, w);
+  }));
+  return [...m.values()].map(w => ({...w, levels:[...w.levels]})).sort((a,b) => b.count-a.count || b.must-a.must);
+}
+const bars = (list, n, max=8) => list.length ? list.slice(0,max).map(([k,c]) => `<div class="bar"><span>${esc(k)}</span><span class="v">${c} · ${Math.round(c/n*100)}%</span><div class="track"><div class="fill" style="width:${c/n*100}%"></div></div></div>`).join("") : `<div class="empty">No answers yet</div>`;
+const panel = (title, body, cls="") => `<div class="panel ${cls}"><h3>${title}</h3>${body}</div>`;
+const READER = {avid:"Reads all the time",regular:"Reads regularly",sometimes:"Now and then",rarely:"Rarely",never:"Not right now"};
+
+const cnt = (rows, sec) => Math.max(1, rows.filter(r => (r.sections||[]).includes(sec)).length);
+function textList(rows, fields){
+  const out = []; rows.forEach(r => fields.forEach(([k,label]) => { if (r[k]) out.push([label, r[k]]); }));
+  return out.length ? `<div class="tablewrap"><table><thead><tr><th>Section</th><th>What they asked for</th></tr></thead><tbody>${out.slice(0,50).map(([a,b]) => `<tr><td>${esc(a)}</td><td>${esc(b)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty">None yet</div>`;
+}
+function renderDash(){
+  const rows = rowsNow(), n = rows.length, wl = wishlist(rows);
+  $("#kTotal").textContent = n;
+  $("#kTitles").textContent = wl.length;
+  $("#kClub").textContent = rows.filter(r => r.club === "yes").length;
+  $("#kDonors").textContent = rows.filter(r => r.donate === "yes").length;
+  if (!n) { $("#dash").innerHTML = panel("Waiting for responses", `<div class="empty">Share the form with students using a link that lets them respond. Wishlists, genre interest and reading habits will fill in here as answers arrive.</div>`, "span"); return; }
+
+  const gm = new Map();
+  rows.forEach(r => Object.entries(r.ratings||{}).forEach(([g,v]) => { const o = gm.get(g)||{love:0,maybe:0,rated:0}; o.rated++; if (v===2) o.love++; if (v===1) o.maybe++; gm.set(g,o); }));
+  const genres = [...gm].sort((a,b) => (b[1].love*2+b[1].maybe) - (a[1].love*2+a[1].maybe));
+  const genreHtml = `<div class="legend"><span><i style="background:var(--accent)"></i>Love it</span><span><i style="background:var(--maybe)"></i>Maybe</span></div>` +
+    genres.map(([g,o]) => `<div class="bar"><span>${esc(g)}</span><span class="v">${o.love} love · ${o.maybe} maybe</span><div class="track"><div class="fill" style="width:${o.love/o.rated*100}%"></div><div class="fill m" style="width:${o.maybe/o.rated*100}%"></div></div></div>`).join("");
+
+  const wlHtml = wl.length ? `<div class="tablewrap"><table><thead><tr><th>Title</th><th>Author</th><th style="text-align:right">Asked</th><th style="text-align:right">Must have</th><th>Who's asking</th></tr></thead><tbody>${
+    wl.slice(0,40).map(w => `<tr><td>${esc(w.title)} ${w.count>1?'<span class="pill">popular</span>':""}</td><td>${esc(w.author)}</td><td class="num">${w.count}</td><td class="num">${w.must}</td><td>${esc(w.levels.join(", "))}</td></tr>`).join("")
+  }</tbody></table></div>${wl.length>40?`<div class="hint">Showing the top 40 of ${wl.length}. Download the wishlist CSV for the full list.</div>`:""}` : `<div class="empty">No book requests yet</div>`;
+
+  const favs = []; rows.forEach(r => Object.entries(r.genreFavs||{}).forEach(([g,v]) => favs.push([g,v])));
+  const favHtml = favs.length ? `<div class="tablewrap"><table><thead><tr><th>Genre</th><th>Suggested titles & authors</th></tr></thead><tbody>${favs.slice(0,30).map(([g,v]) => `<tr><td>${esc(g)}</td><td>${esc(v)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty">None yet</div>`;
+  const favBooks = rows.map(r => r.favourite).filter(Boolean);
+  const examTxt = rows.map(r => r.examBooks).filter(Boolean);
+
+  $("#dash").innerHTML = [
+    panel("Most-wanted books", wlHtml, "span"),
+    panel("Genre interest", genreHtml),
+    panel("Respondents by level", bars(tally(rows,"level",LEVELS), n)),
+    panel("Sections chosen", bars(tally(rows,"sections"), n)),
+    panel("Moods for pleasure reading", bars(tally(rows,"pMoods"), cnt(rows,"Reading for pleasure"))),
+    panel("How they choose books", bars(tally(rows,"pChoose"), cnt(rows,"Reading for pleasure"))),
+    panel("Research purposes", bars(tally(rows,"aFor"), cnt(rows,"Academic and research reading"))),
+    panel("Sources wanted", bars(tally(rows,"aSources"), cnt(rows,"Academic and research reading"))),
+    panel("Research skills to teach", bars(tally(rows,"aSkills"), cnt(rows,"Academic and research reading"))),
+    panel("Other-language reading", bars(tally(rows,"lTypes"), cnt(rows,"Reading in other languages"))),
+    panel("Comic styles", bars(tally(rows,"cStyles"), cnt(rows,"Comics, manga and graphic novels"))),
+    panel("Non-fiction topics", bars(tally(rows,"nTopics"), cnt(rows,"Non-fiction and the real world"))),
+    panel("Magazines to subscribe to", bars(tally(rows,"nMags"), cnt(rows,"Non-fiction and the real world"))),
+    panel("Writing support wanted", bars(tally(rows,"wHelp"), cnt(rows,"Writing and creative work"))),
+    panel("Reading apps used", bars(tally(rows,"dApps"), cnt(rows,"Digital and audio reading"))),
+    panel("Titles from chosen sections", textList(rows, [["pDream","Wished for in the library"],["aTopics","Research topics"],["lTitles","Other-language titles"],["cTitles","Comics"],["nTitles","Non-fiction"],["dWant","E-books / audio"]]), "span"),
+    panel("Reader types", bars(tally(rows,"readerType",READER), n)),
+    panel("What stops low readers", bars(tally(rows,"barriers"), Math.max(1, rows.filter(r => ["rarely","never"].includes(r.readerType)).length))),
+    panel("Formats", bars(tally(rows,"formats"), n)),
+    panel("Reading languages", bars(tally(rows,"languages"), n)),
+    panel("Subjects to stock", bars(tally(rows,"subjects"), n, 10)),
+    panel("Exam prep", bars(tally(rows,"exams").filter(([k]) => k !== "None right now"), n)),
+    panel("When they read", bars(tally(rows,"times"), n)),
+    panel("Where they read", bars(tally(rows,"places"), n)),
+    panel("How often", bars(tally(rows,"frequency"), n)),
+    panel("Library improvements asked for", bars(tally(rows,"libIssues"), n)),
+    panel("Why some never visit", bars(tally(rows,"libWhyNot"), Math.max(1, rows.filter(r => r.libVisits==="never").length))),
+    panel("Activities they'd join", bars(tally(rows,"wants"), n)),
+    panel("Titles from favourite genres", favHtml, "span"),
+    panel("Books educators want for students", (()=>{ const e = rows.filter(r => r.eduBooks || r.eduSets); return e.length ? `<div class="tablewrap"><table><thead><tr><th>Role</th><th>Subjects</th><th>Books for students</th><th>Class sets</th></tr></thead><tbody>${e.slice(0,30).map(r => `<tr><td>${esc(r.eduRole)}</td><td>${esc(r.eduSubjects)}</td><td>${esc(r.eduBooks)}</td><td>${esc(r.eduSets)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty">No educator requests yet</div>`; })(), "span"),
+    panel("Professional reading for educators", bars(tally(rows,"eduPro"), Math.max(1, rows.filter(r => r.level==="edu").length))),
+    panel("DP / CP subject groups", bars(tally(rows,"ibGroups"), Math.max(1, rows.filter(r => ["dp","cp"].includes(r.level)).length))),
+    panel("EE, Reflective Project and TOK books", (()=>{ const t = rows.map(r => r.eeBooks).filter(Boolean); return t.length ? `<div>${t.slice(0,30).map(esc).join(" · ")}</div>` : `<div class="empty">None yet</div>`; })()),
+    panel("All-time favourites", favBooks.length ? `<div>${favBooks.slice(0,40).map(esc).join(" · ")}</div>` : `<div class="empty">None yet</div>`),
+    panel("Exam books requested", examTxt.length ? `<div>${examTxt.slice(0,30).map(esc).join(" · ")}</div>` : `<div class="empty">None yet</div>`)
+  ].join("");
+}
+</script>
+
+</body></html>
